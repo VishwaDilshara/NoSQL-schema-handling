@@ -48,48 +48,68 @@ def create_employee():
             }
         }
         
-        # Handle educational qualifications dynamically
-        qualifications = data.get('educationalQualifications', [])
-        if qualifications:
-            # Group qualifications by type
-            education_items = []
-            certification_items = []
-            experience_items = []
-            
-            for qual in qualifications:
-                qual_type = qual.get('type', '').lower()
-                qual_data = {
-                    'degree': qual.get('degree', ''),
-                    'institution': qual.get('institution', ''),
-                    'year': qual.get('year', '')
+        # Handle education data (degree, institution, year)
+        education_data = data.get('education', [])
+        if education_data:
+            processed_education = []
+            for edu in education_data:
+                edu_item = {
+                    'degree': edu.get('degree', ''),
+                    'institution': edu.get('institution', ''),
+                    'year': edu.get('year', '')
                 }
-                
                 # Convert year to int if it's a valid number
                 try:
-                    if qual_data['year']:
-                        qual_data['year'] = int(qual_data['year'])
+                    if edu_item['year']:
+                        edu_item['year'] = int(edu_item['year'])
                 except (ValueError, TypeError):
                     pass  # Keep as string if conversion fails
                 
-                if qual_type == 'education':
-                    education_items.append(qual_data)
-                elif qual_type == 'certification':
-                    certification_items.append(qual_data)
-                elif qual_type == 'experience':
-                    experience_items.append(qual_data)
+                processed_education.append(edu_item)
             
-            # Only add non-empty arrays to the document
-            educational_qualifications = {}
-            if education_items:
-                educational_qualifications['education'] = education_items
-            if certification_items:
-                educational_qualifications['certification'] = certification_items
-            if experience_items:
-                educational_qualifications['experience'] = experience_items
+            employee['education'] = processed_education
+        
+        # Handle certification data (certificationName, certificationYear)
+        certification_data = data.get('certification', [])
+        if certification_data:
+            processed_certification = []
+            for cert in certification_data:
+                cert_item = {
+                    'certificationName': cert.get('certificationName', ''),
+                    'certificationYear': cert.get('certificationYear', '')
+                }
+                # Convert year to int if it's a valid number
+                try:
+                    if cert_item['certificationYear']:
+                        cert_item['certificationYear'] = int(cert_item['certificationYear'])
+                except (ValueError, TypeError):
+                    pass
+                
+                processed_certification.append(cert_item)
             
-            # Only add educationalQualifications if there's at least one type
-            if educational_qualifications:
-                employee['educationalQualifications'] = educational_qualifications
+            employee['certification'] = processed_certification
+        
+        # Handle experience data (position, officeName, place, year)
+        experience_data = data.get('experience', [])
+        if experience_data:
+            processed_experience = []
+            for exp in experience_data:
+                exp_item = {
+                    'position': exp.get('position', ''),
+                    'officeName': exp.get('officeName', ''),
+                    'place': exp.get('place', ''),
+                    'year': exp.get('year', '')
+                }
+                # Convert year to int if it's a valid number
+                try:
+                    if exp_item['year']:
+                        exp_item['year'] = int(exp_item['year'])
+                except (ValueError, TypeError):
+                    pass
+                
+                processed_experience.append(exp_item)
+            
+            employee['experience'] = processed_experience
         
         # Insert into MongoDB
         result = mongo.db.employees.insert_one(employee)
@@ -129,7 +149,7 @@ def update_employee(employee_id):
     try:
         data = request.get_json()
         
-        # Prepare update document (same logic as create)
+        # Prepare update document
         update_doc = {
             'nic': data.get('nic'),
             'name': {
@@ -145,44 +165,59 @@ def update_employee(employee_id):
             }
         }
         
-        # Handle educational qualifications
-        qualifications = data.get('educationalQualifications', [])
-        if qualifications:
-            education_items = []
-            certification_items = []
-            experience_items = []
-            
-            for qual in qualifications:
-                qual_type = qual.get('type', '').lower()
-                qual_data = {
-                    'degree': qual.get('degree', ''),
-                    'institution': qual.get('institution', ''),
-                    'year': qual.get('year', '')
+        # Handle education data
+        education_data = data.get('education', [])
+        if education_data:
+            processed_education = []
+            for edu in education_data:
+                edu_item = {
+                    'degree': edu.get('degree', ''),
+                    'institution': edu.get('institution', ''),
+                    'year': edu.get('year', '')
                 }
-                
                 try:
-                    if qual_data['year']:
-                        qual_data['year'] = int(qual_data['year'])
+                    if edu_item['year']:
+                        edu_item['year'] = int(edu_item['year'])
                 except (ValueError, TypeError):
                     pass
-                
-                if qual_type == 'education':
-                    education_items.append(qual_data)
-                elif qual_type == 'certification':
-                    certification_items.append(qual_data)
-                elif qual_type == 'experience':
-                    experience_items.append(qual_data)
-            
-            educational_qualifications = {}
-            if education_items:
-                educational_qualifications['education'] = education_items
-            if certification_items:
-                educational_qualifications['certification'] = certification_items
-            if experience_items:
-                educational_qualifications['experience'] = experience_items
-            
-            if educational_qualifications:
-                update_doc['educationalQualifications'] = educational_qualifications
+                processed_education.append(edu_item)
+            update_doc['education'] = processed_education
+        
+        # Handle certification data
+        certification_data = data.get('certification', [])
+        if certification_data:
+            processed_certification = []
+            for cert in certification_data:
+                cert_item = {
+                    'certificationName': cert.get('certificationName', ''),
+                    'certificationYear': cert.get('certificationYear', '')
+                }
+                try:
+                    if cert_item['certificationYear']:
+                        cert_item['certificationYear'] = int(cert_item['certificationYear'])
+                except (ValueError, TypeError):
+                    pass
+                processed_certification.append(cert_item)
+            update_doc['certification'] = processed_certification
+        
+        # Handle experience data
+        experience_data = data.get('experience', [])
+        if experience_data:
+            processed_experience = []
+            for exp in experience_data:
+                exp_item = {
+                    'position': exp.get('position', ''),
+                    'officeName': exp.get('officeName', ''),
+                    'place': exp.get('place', ''),
+                    'year': exp.get('year', '')
+                }
+                try:
+                    if exp_item['year']:
+                        exp_item['year'] = int(exp_item['year'])
+                except (ValueError, TypeError):
+                    pass
+                processed_experience.append(exp_item)
+            update_doc['experience'] = processed_experience
         
         # Update in MongoDB
         result = mongo.db.employees.update_one(
